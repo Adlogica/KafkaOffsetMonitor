@@ -46,13 +46,15 @@ If you do not want to build it manually, just download the [current jar](https:/
 This is a small webapp, you can run it locally or on a server, as long as you have access to the ZooKeeper nodes controlling kafka.
 
 ```
-java -cp KafkaOffsetMonitor-assembly-0.2.1.jar \
-     com.quantifind.kafka.offsetapp.OffsetGetterWeb \
-     --offsetStorage kafka
-     --zk zk-server1,zk-server2 \
-     --port 8080 \
-     --refresh 10.seconds \
-     --retain 2.days
+/usr/bin/java -jar /home/ubuntu/kafka-monitor/KafkaOffsetMonitor.jar \
+    --offsetStorage zookeeper \
+    --zk 10.231.215.87:2181,10.179.191.175:2181,10.157.92.224:2181 \
+    --port 9000 \
+    --refresh 5.minutes \
+    --retain 2.days \
+    --dbName /home/ubuntu/kafka-monitor/offsetapp \
+    --pagerDutyKey a6c4280bed7f45e1a9903412f0f12e23 \
+    --groupTopicMaxLagConfigs events_mp:adsavvy.lead.complete=100,events_mp:adsavvy.track=1000,complete_leads_layer:adsavvy.lead.complete=50,events_lead:adsavvy.track=1000,events_batch_redshift:adsavvy.track=50000,events_batch_redshift:adsavvy.lead.complete=1000
 ```
 
 The arguments are:
@@ -106,15 +108,13 @@ As long as this is true you will need to use local maven repo and just publish K
 Assuming you have a custom implementation of OffsetInfoReporter in a jar file, running it is as simple as adding the jar to the classpath when running app:
 
 ```
-/usr/bin/java -jar /home/ubuntu/kafka-monitor/KafkaOffsetMonitor.jar \
-    --offsetStorage zookeeper \
-    --zk 10.231.215.87:2181,10.179.191.175:2181,10.157.92.224:2181 \
-    --port 9000 \
-    --refresh 5.minutes \
-    --retain 2.days \
-    --dbName /home/ubuntu/kafka-monitor/offsetapp \
-    --pagerDutyKey a6c4280bed7f45e1a9903412f0f12e23 \
-    --groupTopicMaxLagConfigs events_mp:adsavvy.lead.complete=100,events_mp:adsavvy.track=1000,complete_leads_layer:adsavvy.lead.complete=50,events_lead:adsavvy.track=1000,events_batch_redshift:adsavvy.track=50000,events_batch_redshift:adsavvy.lead.complete=1000
+java -cp KafkaOffsetMonitor-assembly-0.3.0.jar:kafka-offset-monitor-another-db-reporter.jar \
+     com.quantifind.kafka.offsetapp.OffsetGetterWeb \
+     --zk zk-server1,zk-server2 \
+     --port 8080 \
+     --refresh 10.seconds \
+     --retain 2.days
+     --pluginsArgs anotherDbHost=host1,anotherDbPort=555
 ```
 
 
