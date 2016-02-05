@@ -8,6 +8,7 @@ object KafkaUtilsBuild extends Build {
   def sharedSettings = Defaults.defaultSettings ++ assemblySettings ++ Seq(
     version := "0.3.0-SNAPSHOT",
     scalaVersion := "2.10.3",
+    mainClass in (Compile, packageBin) := Some("com.quantifind.kafka.offsetapp.OffsetGetterWeb"),
     organization := "com.quantifind",
     scalacOptions := Seq("-deprecation", "-unchecked", "-optimize"),
     unmanagedJars in Compile <<= baseDirectory map { base => (base / "lib" ** "*.jar").classpath },
@@ -22,7 +23,8 @@ object KafkaUtilsBuild extends Build {
       "log4j" % "log4j" % "1.2.17",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test",
       "org.mockito" % "mockito-all" % "1.10.19" % "test",
-      "org.apache.kafka" %% "kafka" % "0.8.2.1"))
+      "org.apache.kafka" %% "kafka" % "0.8.2.1",
+      "com.squareup.pagerduty" % "pagerduty-incidents" % "1.0.1"))
 
   val slf4jVersion = "1.6.1"
 

@@ -5,14 +5,13 @@ import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import com.quantifind.kafka.OffsetGetter
 import com.quantifind.kafka.OffsetGetter.KafkaInfo
+import com.quantifind.kafka.offsetapp.alerts.PagerDutyOffsetInfoReporter
 import com.quantifind.kafka.offsetapp.sqlite.SQLiteOffsetInfoReporter
 import com.quantifind.sumac.validation.Required
 import com.quantifind.utils.UnfilteredWebApp
 import com.quantifind.utils.Utils.retry
 import com.twitter.util.Time
-import kafka.consumer.ConsumerConnector
 import kafka.utils.Logging
-import org.I0Itec.zkclient.ZkClient
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.write
 import org.json4s.{CustomSerializer, JInt, NoTypeHints}
@@ -33,6 +32,12 @@ class OWArgs extends OffsetGetterArgs with UnfilteredWebApp.Arguments {
   var refresh: FiniteDuration = _
 
   var dbName: String = "offsetapp"
+
+  @Required
+  var pagerDutyKey: String = _
+
+  @Required
+  var groupTopicMaxLagConfigs: String = _
 
   lazy val db = new OffsetDB(dbName)
 
@@ -175,9 +180,11 @@ object OffsetGetterWeb extends UnfilteredWebApp[OWArgs] with Logging {
 
     // SQLiteOffsetInfoReporter as a main storage is instantiated explicitly outside this loop so it is filtered out
     reportersSet
-      .filter(!_.equals(classOf[SQLiteOffsetInfoReporter]))
+      .filter(r => !r.equals(classOf[SQLiteOffsetInfoReporter]) && !r.equals(classOf[PagerDutyOffsetInfoReporter]))
       .map((reporterType: Class[_ <: OffsetInfoReporter]) =>  createReporterInstance(reporterType, args.pluginsArgs))
       .+(new SQLiteOffsetInfoReporter(argHolder.db, args))
+      .+(new PagerDutyOffsetInfoReporter(args))
+
   }
 
   def createReporterInstance(reporterClass: Class[_ <: OffsetInfoReporter], rawArgs: String): OffsetInfoReporter = {
